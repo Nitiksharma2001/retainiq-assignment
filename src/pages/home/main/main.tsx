@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { items2 } from '../static'
 import Header from './header'
 import ProductRow from './row'
-import { List, arrayMove } from 'react-movable'
+import { arrayMove } from 'react-movable'
+import Sortable from 'sortablejs'
 
 export interface ItemType {
   id: number
@@ -23,10 +24,26 @@ export default function Main() {
     if (localTotalItems) {
       setTotalColumns(Number(localTotalItems))
     }
+
+    Sortable.create(document.getElementById('rows')!, {
+      handle: '.glyphicon-move',
+      animation: 150,
+      onEnd: (event) => {
+        const oldIndex = event.oldIndex as number
+        const newIndex = event.newIndex as number
+        setItems(arrayMove(items, oldIndex, newIndex))
+        localStorage.setItem('items', JSON.stringify(arrayMove(items, oldIndex, newIndex)))
+      },
+    })
   }, [])
 
   function createColumn() {
+    const newItems = items.map((item) => {
+      return { ...item, images: [...item.images, { src: '', name: '' }] }
+    })
     setTotalColumns(totalColumns + 1)
+    setItems(newItems)
+    localStorage.setItem('items', JSON.stringify(newItems))
     localStorage.setItem('totalColumns', JSON.stringify(totalColumns + 1))
   }
 
@@ -37,8 +54,17 @@ export default function Main() {
   }
 
   function addNewRow() {
-    setItems([...items, { id: items.length + 1, images: [] }])
-    localStorage.setItem('items', JSON.stringify([...items, { id: items.length + 1, images: [] }]))
+    const newItems = [
+      ...items,
+      {
+        id: items.length + 1,
+        images: Array.from({ length: totalColumns }, (_, i) => {
+          return { src: '', name: '' }
+        }),
+      },
+    ]
+    setItems(newItems)
+    localStorage.setItem('items', JSON.stringify(newItems))
   }
 
   function removeColumn(columnNo: number) {
@@ -68,6 +94,7 @@ export default function Main() {
       }
     })
     setItems(newItems)
+    localStorage.setItem('items', JSON.stringify(newItems))
   }
 
   return (
@@ -75,31 +102,18 @@ export default function Main() {
       <div className='w-full flex gap-8 py-8'>
         <Header totalColumns={totalColumns} removeColumn={removeColumn} />
       </div>
-      
       <div id='rows' className='flex flex-col gap-4'>
-        <List
-          values={items}
-          onChange={({ oldIndex, newIndex }) => {
-            setItems(arrayMove(items, oldIndex, newIndex))
-            localStorage.setItem('items', JSON.stringify(arrayMove(items, oldIndex, newIndex)))
-          }}
-          renderList={({ children, props }) => (
-            <div id='rows' className='flex flex-col gap-4' {...props}>
-              {children}
-            </div>
-          )}
-          renderItem={({ value, props }) => (
-            <div className='flex gap-8 h-60 group' key={value.id} style={{ pointerEvents: !props.onKeyDown ? 'none' : 'auto' }}  {...props}>
-              <ProductRow
-                createColumn={createColumn}
-                item={value}
-                removeRow={removeRow}
-                totalColumns={totalColumns}
-                uploadImage={uploadImage}
-              />
-            </div>
-          )}
-        />
+        {items.map((item) => (
+          <div className='flex gap-8 h-60 group' key={item.id}>
+            <ProductRow
+              createColumn={createColumn}
+              item={item}
+              removeRow={removeRow}
+              totalColumns={totalColumns}
+              uploadImage={uploadImage}
+            />
+          </div>
+        ))}
       </div>
       <button className='ml-8 bg-white size-10 rounded-md text-2xl' onClick={addNewRow}>
         +
