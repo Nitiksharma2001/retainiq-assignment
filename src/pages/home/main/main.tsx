@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { items2 } from '../static'
+import data from '../../../data/static.json'
 import Header from './header'
 import ProductRow from './row'
 import { arrayMove } from 'react-movable'
@@ -11,8 +11,8 @@ export interface ItemType {
 }
 
 export default function Main() {
-  const [items, setItems] = useState<ItemType[]>(items2)
-  const [totalColumns, setTotalColumns] = useState(3)
+  const [items, setItems] = useState<ItemType[]>(data)
+  const [totalColumns, setTotalColumns] = useState(2)
 
   useEffect(() => {
     const localItems = localStorage.getItem('items')
@@ -31,7 +31,8 @@ export default function Main() {
       onEnd: (event) => {
         const oldIndex = event.oldIndex as number
         const newIndex = event.newIndex as number
-        setItems(arrayMove(items, oldIndex, newIndex))
+        // setItems(arrayMove(items, oldIndex, newIndex))
+        console.log(arrayMove(items, oldIndex, newIndex))
         localStorage.setItem('items', JSON.stringify(arrayMove(items, oldIndex, newIndex)))
       },
     })
@@ -58,7 +59,7 @@ export default function Main() {
       ...items,
       {
         id: items.length + 1,
-        images: Array.from({ length: totalColumns }, (_, i) => {
+        images: Array.from({ length: totalColumns }, () => {
           return { src: '', name: '' }
         }),
       },
@@ -98,7 +99,7 @@ export default function Main() {
   }
 
   return (
-    <div className='flex flex-col gap-4 px-4 bg-gray-200 overflow-auto rounded-lg py-2'>
+    <>
       <div className='w-full flex gap-8 py-8'>
         <Header totalColumns={totalColumns} removeColumn={removeColumn} />
       </div>
@@ -118,6 +119,6 @@ export default function Main() {
       <button className='ml-8 bg-white size-10 rounded-md text-2xl' onClick={addNewRow}>
         +
       </button>
-    </div>
+    </>
   )
 }

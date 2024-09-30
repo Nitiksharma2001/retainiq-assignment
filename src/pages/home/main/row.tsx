@@ -12,7 +12,7 @@ export default function ProductRow({
   totalColumns: number
   item: ItemType
   removeRow: (rowId: number) => void
-  createColumn: () => void,
+  createColumn: () => void
   uploadImage: (e: React.ChangeEvent<HTMLInputElement>, rowId: number, columnIndex: number) => void
 }) {
   return (
@@ -31,7 +31,6 @@ export default function ProductRow({
       {item.images.map((image, i) => (
         <div
           className={`border-r-[1px] p-4 border-black grow-0 shrink-0 cursor-pointer w-60`}
-          // onClick={() => (image == 'add' ? createColumn() : null)}
           key={i}>
           <div className='flex gap-4 flex-col h-full justify-center items-center bg-white rounded-md'>
             {image.src == '' ? (
@@ -50,7 +49,9 @@ export default function ProductRow({
       ))}
       <div
         className={`border-r-[1px] p-4 border-black grow-0 shrink-0 cursor-pointer w-60`}
-        onClick={() => {createColumn(), console.log('hi')}}
+        onClick={() => {
+          createColumn(), console.log('hi')
+        }}
         key={totalColumns}>
         <div className='flex gap-8 flex-col h-full justify-center items-center bg-white rounded-md'>
           <span>+</span>
