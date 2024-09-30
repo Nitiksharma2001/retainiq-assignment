@@ -1,9 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import data from '../../../data/static.json'
 import Header from './header'
 import ProductRow from './row'
-import { arrayMove } from 'react-movable'
-import Sortable from 'sortablejs'
+import { ReactSortable } from 'react-sortablejs'
 
 export interface ItemType {
   id: number
@@ -11,32 +10,13 @@ export interface ItemType {
 }
 
 export default function Main() {
-  const [items, setItems] = useState<ItemType[]>(data)
-  const [totalColumns, setTotalColumns] = useState(2)
+  const [items, setItems] = useState<ItemType[]>(() => {
+    return JSON.parse(localStorage.getItem('items') as string) || data
+  })
 
-  useEffect(() => {
-    const localItems = localStorage.getItem('items')
-    const localTotalItems = localStorage.getItem('totalColumns')
-
-    if (localItems) {
-      setItems(JSON.parse(localItems) as ItemType[])
-    }
-    if (localTotalItems) {
-      setTotalColumns(Number(localTotalItems))
-    }
-
-    Sortable.create(document.getElementById('rows')!, {
-      handle: '.glyphicon-move',
-      animation: 150,
-      onEnd: (event) => {
-        const oldIndex = event.oldIndex as number
-        const newIndex = event.newIndex as number
-        // setItems(arrayMove(items, oldIndex, newIndex))
-        console.log(arrayMove(items, oldIndex, newIndex))
-        localStorage.setItem('items', JSON.stringify(arrayMove(items, oldIndex, newIndex)))
-      },
-    })
-  }, [])
+  const [totalColumns, setTotalColumns] = useState<number>(() => {
+    return Number(localStorage.getItem('totalColumns')) || 2
+  })
 
   function createColumn() {
     const newItems = items.map((item) => {
@@ -103,18 +83,26 @@ export default function Main() {
       <div className='w-full flex gap-8 py-8'>
         <Header totalColumns={totalColumns} removeColumn={removeColumn} />
       </div>
+
       <div id='rows' className='flex flex-col gap-4'>
-        {items.map((item) => (
-          <div className='flex gap-8 h-60 group' key={item.id}>
-            <ProductRow
-              createColumn={createColumn}
-              item={item}
-              removeRow={removeRow}
-              totalColumns={totalColumns}
-              uploadImage={uploadImage}
-            />
-          </div>
-        ))}
+        <ReactSortable
+          list={items}
+          setList={(newOrder) => {
+            setItems(newOrder)
+            localStorage.setItem('items', JSON.stringify(newOrder))
+          }}>
+          {items.map((item) => (
+            <div className='flex gap-8 h-60 group' key={item.id}>
+              <ProductRow
+                createColumn={createColumn}
+                item={item}
+                removeRow={removeRow}
+                totalColumns={totalColumns}
+                uploadImage={uploadImage}
+              />
+            </div>
+          ))}
+        </ReactSortable>
       </div>
       <button className='ml-8 bg-white size-10 rounded-md text-2xl' onClick={addNewRow}>
         +
